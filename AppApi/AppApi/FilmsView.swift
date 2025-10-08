@@ -9,37 +9,22 @@ import SwiftUI
 
 struct FilmsView: View {
     @State var filmsVM = FilmsViewModel()
+    
     var body: some View {
         NavigationStack {
             List(filmsVM.arrFilm) { film in
                 NavigationLink(destination: FilmDetailView(film: film)) {
-                    HStack {
-                        Image(film.title).resizable()
-                        } placeholder: {
-                            ProgressView()
-                        }
-                        .frame(width: 80, height: 120)
-                        .cornerRadius(8)
-
-                        VStack(alignment: .leading) {
-                            Text(film.title)
-                                .font(.headline)
-                            Text("Release: \(film.release_date)")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 8)
+                    FilmRowView(film: film)
                 }
             }
-            .navigationTitle("Star Wars Films")
+            .navigationTitle("Películas de Star Wars")
             .task {
-                await viewModel.fetchFilms()
+                await filmsVM.getFilms()
             }
             .overlay {
-                if viewModel.isLoading {
+                if filmsVM.isLoading {
                     ProgressView("Loading...")
-                } else if let error = viewModel.errorMessage {
+                } else if let error = filmsVM.errorMessage {
                     Text(error).foregroundColor(.red)
                 }
             }
@@ -47,6 +32,29 @@ struct FilmsView: View {
     }
 }
 
+struct FilmRowView: View {
+    var film: Film
+    
+    var body: some View {
+        VStack(alignment:.leading) {
+            Image(film.title)
+                .resizable()
+                .frame(width: 325, height: 200)
+                .cornerRadius(8)
+            
+            VStack(alignment: .leading) {
+                Text(film.title)
+                    .font(.headline)
+                Text("Fecha: \(film.release_date)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
 #Preview {
     FilmsView()
 }
+

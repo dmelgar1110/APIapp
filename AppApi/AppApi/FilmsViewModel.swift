@@ -11,21 +11,34 @@ import Foundation
 @Observable
 class FilmsViewModel {
     var arrFilm = [Film]()
-    var service = ApiService()
     var isLoading = false
     var errorMessage: String?
-    
-    func getFilms() async throws{
+
+    func getFilms() async {
         isLoading = true
         errorMessage = ""
 
+        defer { isLoading = false } // garantiza que se apague loading al final
+
+        guard let url = URL(string: "https://swapi.dev/api/films/") else {
+            errorMessage = "Error de url"
+            return
+        }
+
         do {
-            let response = try await service.getData(from: "https://swapi.dev/api/films", as: FilmResponse.self)
-            self.arrFilm = response.results.sorted { $0.episode_id < $1.episode_id }
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                errorMessage = "Error de conexión"
+                return
+            }
+
+            let decoded = try JSONDecoder().decode(FilmResponse.self, from: data)
+            arrFilm = decoded.results.sorted { $0.episode_id < $1.episode_id }
+
         } catch {
             errorMessage = error.localizedDescription
         }
-
-        isLoading = false
     }
 }
+
